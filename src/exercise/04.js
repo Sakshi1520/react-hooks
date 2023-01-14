@@ -2,11 +2,22 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
+import {useLocalStorageState} from '../utils'
 
 function Board() {
   // 🐨 squares is the state for this component. Add useState for squares
-  const squares = Array(9).fill(null)
+  const [squares, setSquares] = useLocalStorageState(
+    'tic-tac-toe',
+    Array(9).fill(null),
+  )
 
+  React.useEffect(() => {
+    window.localStorage.setItem('tic-tac-toe', JSON.stringify(squares))
+  }, [squares])
+
+  const nextValue = calculateNextValue(squares)
+  const winner = calculateWinner(squares)
+  const status = calculateStatus(winner, squares, nextValue)
   // 🐨 We'll need the following bits of derived state:
   // - nextValue ('X' or 'O')
   // - winner ('X', 'O', or null)
@@ -21,12 +32,18 @@ function Board() {
     // given square index (like someone clicked a square that's already been
     // clicked), then return early so we don't make any state changes
     //
+    if (winner || squares[square]) {
+      return
+    }
     // 🦉 It's typically a bad idea to mutate or directly change state in React.
     // Doing so can lead to subtle bugs that can easily slip into production.
     //
     // 🐨 make a copy of the squares array
     // 💰 `[...squares]` will do it!)
     //
+    const clickedSquares = [...squares]
+    clickedSquares[square] = nextValue
+    setSquares(clickedSquares)
     // 🐨 set the value of the square that was selected
     // 💰 `squaresCopy[square] = nextValue`
     //
@@ -34,6 +51,7 @@ function Board() {
   }
 
   function restart() {
+    setSquares(Array(9).fill(null))
     // 🐨 reset the squares
     // 💰 `Array(9).fill(null)` will do it!
   }
@@ -49,7 +67,7 @@ function Board() {
   return (
     <div>
       {/* 🐨 put the status in the div below */}
-      <div className="status">STATUS</div>
+      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
